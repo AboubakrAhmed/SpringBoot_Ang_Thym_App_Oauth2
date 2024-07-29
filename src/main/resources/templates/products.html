@@ -12,7 +12,25 @@
         <div class="ps-3">
             <div class="card">
                 <div class="card-body">
-                    <h2>Products</h2>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>NAME</th>
+                            <th>PRICE</th>
+                            <th>QUANTITY</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p:${products}">
+                            <td th:text="${p.id}"></td>
+                            <td th:text="${p.name}"></td>
+                            <td th:text="${p.price}"></td>
+                            <td th:text="${p.quantity}"></td>
+                        </tr>
+
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
