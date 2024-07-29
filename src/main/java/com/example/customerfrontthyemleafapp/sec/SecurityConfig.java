@@ -22,7 +22,6 @@ import java.util.*;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-
     private ClientRegistrationRepository clientRegistrationRepository;
 
     public SecurityConfig(ClientRegistrationRepository clientRegistrationRepository) {
@@ -31,26 +30,31 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.
-                csrf(Customizer.withDefaults()).
-                authorizeHttpRequests(ar->ar.requestMatchers("/","/oauth2Login/**","/webjars/**","/h2-console/**").permitAll()).
-                authorizeHttpRequests(ar->ar.anyRequest().authenticated()).
-                oauth2Login(Customizer.withDefaults()).
-                logout((logout) -> logout
+        return http
+                .csrf(Customizer.withDefaults())
+                .authorizeHttpRequests(ar->ar.requestMatchers("/","/oauth2Login/**","/webjars/**","/h2-console/**").permitAll())
+                .authorizeHttpRequests(ar->ar.anyRequest().authenticated())
+                .headers(h->h.frameOptions(fo->fo.disable()))
+                .csrf(csrf->csrf.ignoringRequestMatchers("/h2-console/**"))
+                .oauth2Login(al->
+                        al.loginPage("/oauth2Login")
+                                .defaultSuccessUrl("/")
+                )
+                .logout((logout) -> logout
                         .logoutSuccessHandler(oidcLogoutSuccessHandler())
                         .logoutSuccessUrl("/").permitAll()
                         .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")).
-                exceptionHandling(eh->eh.accessDeniedPage("/notAuthorized")).
-                build();
+                        .deleteCookies("JSESSIONID"))
+                .exceptionHandling(eh->eh.accessDeniedPage("/notAutorized"))
+                .build();
     }
-
     private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
         final OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
                 new OidcClientInitiatedLogoutSuccessHandler(this.clientRegistrationRepository);
         oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}?logoutsuccess=true");
         return oidcLogoutSuccessHandler;
     }
+
     @Bean
     public GrantedAuthoritiesMapper userAuthoritiesMapper() {
         return (authorities) -> {
@@ -73,5 +77,4 @@ public class SecurityConfig {
                 .map((role) -> new SimpleGrantedAuthority(role))
                 .toList();
     }
-
 }
